@@ -1,0 +1,128 @@
+
+    interface IRequiredmethods
+    {
+         string digitcolor(int digit);
+         string  multipliercolor(int multilplier);
+    }
+
+    class Basecolors : IRequiredmethods
+    {
+        public string digitcolor(int digit)
+        {
+            if (colors.ContainsKey(digit))
+            {
+                return colors[digit];
+            }
+        else
+        {
+            return "invalid";
+        }
+        }
+
+        public string multipliercolor(int multiplier)
+        {
+            if (multipliercolors.ContainsKey(multiplier))
+            {
+                return multipliercolors[multiplier];
+            }
+        else
+        {
+            return "invalid";
+        }
+        }
+    static Dictionary<int, string> colors = new Dictionary<int, string>()
+    {
+        {0,"black" },
+        {1,"brown" },
+        {2,"red" },
+        {3,"orange" },
+        {4,"yellow" },
+        {5,"green" },
+        {6,"blue" },
+        {7,"voilet" },
+        {8,"grey" },
+        {9,"white" }
+    };
+
+    static Dictionary<int, string> multipliercolors = new Dictionary<int, string>()
+    {
+        {-1,"gold" },
+        {-2,"silver" },
+        {0,"black" },
+        {1,"brown" },
+        {2,"red" },
+        {3,"orange" },
+        {4,"yellow" },
+        {5,"green" },
+        {6,"blue" },
+        {7,"voilet" },
+        {8,"grey" },
+        {9,"white" }
+    };
+}
+class calculationofresistance
+{
+    private IRequiredmethods _requiredmethods;
+    public calculationofresistance(IRequiredmethods requiredmethods){
+        _requiredmethods = requiredmethods;
+    }
+
+    public  static void getcolorcode(double resistance) {
+       double newresistance = resistance;
+
+         int multiplier = 0;
+        while (newresistance < 10 && newresistance!=0){
+            newresistance *= 10;
+            multiplier--;
+        }
+
+        while (newresistance > 100) {
+            newresistance /= 10;
+            multiplier++;
+        }
+        int firstdigit = (int)newresistance / 10;
+        int seconddigit = (int)newresistance % 10;
+
+        string firstband = _requiredmethods.digitcolor(firstdigit);
+        string secondband = _requiredmethods.digitcolor(seconddigit);
+        string multiplierband = _requiredmethods.multipliercolor(multiplier);
+
+    } 
+}
+
+
+class Program
+{
+    public static void Main(String[] args)
+    {
+        string input = Console.ReadLine();
+        double resistance;
+        bool isvalid=double.TryParse(input, out resistance);
+       
+        
+       
+
+        
+        IRequiredmethods requiredmethods1 = new Basecolors();
+        calculationofresistance cr = new calculationofresistance(requiredmethods1);
+        
+        if(isvalid)
+        {
+            Console.WriteLine(cr.getcolorcode(resistance));
+        }
+        else
+        {
+            Console.WriteLine("enter valid resistance");
+
+        }
+        
+
+       
+        
+
+    }
+
+}
+
+
+
