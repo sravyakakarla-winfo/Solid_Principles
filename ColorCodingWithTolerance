@@ -1,0 +1,190 @@
+
+using System;
+using System.Collections.Generic;
+
+interface IRequiredmethods
+    {
+         string digitcolor(int digit);
+         string  multipliercolor(int multilplier);
+
+    string tolerancecolor(double tolerance);
+    }
+
+    class Basecolors : IRequiredmethods
+    {
+        public string digitcolor(int digit)
+        {
+            if (colors.ContainsKey(digit))
+            {
+                return colors[digit];
+            }
+           else
+           {
+            return "invalid";
+           }
+        }
+
+        public string multipliercolor(int multiplier)
+        {
+            if (multipliercolors.ContainsKey(multiplier))
+            {
+                return multipliercolors[multiplier];
+            }
+            else
+            {
+            return "invalid";
+            }
+        }
+    public string tolerancecolor(double tolerance)
+    {
+        if (tolerancecolors.ContainsKey(tolerance))
+        {
+            return tolerancecolors[tolerance];
+        }
+        else
+        {
+            return "invalid";
+        }
+    }
+    static Dictionary<int, string> colors = new Dictionary<int, string>()
+    {
+        {0,"black" },
+        {1,"brown" },
+        {2,"red" },
+        {3,"orange" },
+        {4,"yellow" },
+        {5,"green" },
+        {6,"blue" },
+        {7,"voilet" },
+        {8,"grey" },
+        {9,"white" }
+    };
+
+    static Dictionary<int, string> multipliercolors = new Dictionary<int, string>()
+    {
+        {-1,"gold" },
+        {-2,"silver" },
+        {0,"black" },
+        {1,"brown" },
+        {2,"red" },
+        {3,"orange" },
+        {4,"yellow" },
+        {5,"green" },
+        {6,"blue" },
+        {7,"voilet" },
+        {8,"grey" },
+        {9,"white" }
+    };
+
+    static Dictionary<double, string> tolerancecolors = new Dictionary<double, string>()
+    {
+        {1,"Brown" },
+        {2,"red" },
+        {0.5,"green" },
+        {0.25,"blue" },
+        {0.1,"voilet" },
+        {0.05,"grey" },
+        {5,"gold" },
+        {10,"silver" }
+
+
+    };
+    public static List<double> GetAvailableTolerances()
+    {
+        return new List<double>(tolerancecolors.Keys);
+    }
+}
+class calculationofresistance
+{
+     IRequiredmethods _requiredmethods;
+    public calculationofresistance(IRequiredmethods requiredmethods){
+        _requiredmethods = requiredmethods;
+    }
+
+    public string getcolorcode(double resistance,double tolerance) {
+       double newresistance = resistance;
+        double newtolerance = tolerance;
+         int multiplier = 0;
+        double mintolerance;
+        double maxtolerance;
+        if (newtolerance != 0)
+        {
+           
+            
+
+                newtolerance = resistance * (newtolerance / 100);
+                mintolerance = resistance - newtolerance;
+                maxtolerance = resistance + newtolerance;
+            
+        }
+        else
+        {
+            return "invalidtolerance value";
+        }
+            while (newresistance < 10 && newresistance != 0)
+            {
+                newresistance *= 10;
+                multiplier--;
+            }
+
+        while (newresistance >= 100) {
+            newresistance /= 10;
+            multiplier++;
+        }
+        int firstdigit = (int)newresistance / 10;
+        int seconddigit = (int)newresistance % 10;
+
+        string firstband = _requiredmethods.digitcolor(firstdigit);
+        string secondband = _requiredmethods.digitcolor(seconddigit);
+        string multiplierband = _requiredmethods.multipliercolor(multiplier);
+        string toleranceband = _requiredmethods.tolerancecolor(tolerance);
+        Console.WriteLine("Your resistor is ready");
+        return $"{firstband} {secondband} {multiplierband} the difference of tolerance{newtolerance} minimum to maximum tolerance is{mintolerance} to {maxtolerance} having color {toleranceband}"; 
+    } 
+    
+}
+
+
+class Program
+{
+    public static void Main(String[] args)
+    {
+       
+        foreach (var key in Basecolors.GetAvailableTolerances())
+        {
+            Console.Write($"{key}%  ");
+        }
+        Console.WriteLine("Above are the tolerance usually resistors as made of you,Please opt only one of these");
+        Console.WriteLine("Please Enter Required value of Resistance in Ohms");
+        string input = Console.ReadLine();
+        Console.WriteLine("Please Enter Tolerance values from above");
+        string input1 = Console.ReadLine();
+        
+        double resistance;
+        double tolerance;
+        bool isvalid=double.TryParse(input, out resistance);
+        bool isvalid1=double.TryParse(input1,out  tolerance);
+      
+        IRequiredmethods requiredmethods1 = new Basecolors();
+        calculationofresistance cr = new calculationofresistance(requiredmethods1);
+        
+        if(isvalid)
+        {
+            Console.WriteLine(cr.getcolorcode(resistance,tolerance));
+        }
+        else
+        {
+            Console.WriteLine("enter valid resistance");
+
+        }
+        
+
+       
+        
+
+    }
+
+}
+
+
+
