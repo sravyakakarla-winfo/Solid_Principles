@@ -1,0 +1,294 @@
+Interfaces:
+namespace ResistorColorcodingApp.Interfaces
+{
+    public interface IDigitColorService
+    {
+        string GetDigitColor(int digit);
+    }
+}
+
+namespace ResistorColorcodingApp.Interfaces
+{
+    public interface IMultiplierColorService
+    {
+        string GetMultiplierColor(int multiplier);
+    }
+}
+
+namespace ResistorColorcodingApp.Interfaces
+{
+    public interface IToleranceColorService
+    {
+        string GetToleranceColor(double tolerance);
+    }
+}
+
+namespace ResistorColorcodingApp.Interfaces
+{
+    public interface IResistorColorService : IDigitColorService, IMultiplierColorService, IToleranceColorService
+    {
+    }
+}
+
+
+namespace ResistorColorcodingApp.Repositories
+{
+    public class ColorCodeRepository
+    {
+       public  Dictionary<int, string> digitcolors = new Dictionary<int, string>()
+    {
+        { 0, "black" },
+        { 1, "brown" },
+        { 2, "red" },
+        { 3, "orange" },
+        { 4, "yellow" },
+        { 5, "green" },
+        { 6, "blue" },
+        { 7, "violet" },
+        { 8, "grey" },
+        { 9, "white" }
+    };
+
+        public Dictionary<int, string> multipliercolors = new Dictionary<int, string>()
+    {
+        {-1,"gold" },
+        {-2,"silver" },
+        {0,"black" },
+        {1,"brown" },
+        {2,"red" },
+        {3,"orange" },
+        {4,"yellow" },
+        {5,"green" },
+        {6,"blue" },
+        {7,"violet" },
+        {8,"grey" },
+        {9,"white" }
+    };
+
+        public  Dictionary<double, string> tolerancecolors = new Dictionary<double, string>()
+    {
+        { 1, "brown" },
+        { 2, "red" },
+        { 0.5, "green" },
+        { 0.25, "blue" },
+        { 0.1, "violet" },
+        { 0.05, "grey" },
+        { 5, "gold" },
+        { 10, "silver" }
+
+    };
+    }
+}
+
+namespace ResistorColorcodingApp.Services
+{
+    public class ResistanceCalculator
+    {
+        private readonly IResistorColorService _colorService;
+
+        public ResistanceCalculator(IResistorColorService colorService)
+        {
+            _colorService = colorService;
+        }
+
+        public (string firstBand, string secondBand, string multiplierBand, string toleranceBand) CalculateBands(double resistance, double tolerance)
+        {
+            if (tolerance == 0)
+                throw new ArgumentException("Tolerance cannot be zero.");
+
+            while (resistance < 10) {
+                resistance *= 10;
+            }
+            while (resistance >= 100) {
+                resistance /= 10; 
+            }
+
+            int firstDigit = (int)resistance / 10;
+            int secondDigit = (int)resistance % 10;
+
+            int multiplier = 0;
+            double newresistance= resistance;
+            while (newresistance >= 100) {
+                newresistance /= 10; 
+                multiplier++;
+            }
+            while (newresistance < 10) {
+                newresistance *= 10;
+                multiplier--; 
+            }
+
+            return (
+                _colorService.GetDigitColor(firstDigit),
+                _colorService.GetDigitColor(secondDigit),
+                _colorService.GetMultiplierColor(multiplier),
+                _colorService.GetToleranceColor(tolerance)
+            );
+        }
+    }
+}
+
+
+
+using ResistorColorcodingApp.Interfaces;
+using ResistorColorcodingApp.Repositories;
+
+namespace ResistorColorcodingApp.Services
+{
+    public class ResistorColorService : IResistorColorService
+    {
+        private readonly ColorCodeRepository _repository;
+
+        public ResistorColorService(ColorCodeRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public string GetDigitColor(int digit)
+        {
+            return _repository.digitcolors.TryGetValue(digit, out var color)
+                ? color : "Invalid";
+        }
+
+        public string GetMultiplierColor(int multiplier)
+        {
+            return _repository.multipliercolors.TryGetValue(multiplier, out var color)
+                ? color : "Invalid";
+        }
+
+        public string GetToleranceColor(double tolerance)
+        {
+            return _repository.tolerancecolors.TryGetValue(tolerance, out var color)
+                ? color : "Invalid";
+        }
+    }
+}
+
+
+
+
+
+using ResistorColorcodingApp.Repositories;
+using ResistorColorcodingApp.Interfaces;
+using ResistorColorcodingApp.Services;
+
+
+
+namespace ResistorColorcodingApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var repo = new ColorCodeRepository();
+            IResistorColorService service = new ResistorColorService(repo);
+            var calculator = new ResistanceCalculator(service);
+            string input;
+            do
+            {
+
+
+                Console.WriteLine("Enter resistance value in ohms:");
+                double resistance = Convert.ToDouble(Console.ReadLine());
+
+                Console.WriteLine("Available Tolerance Values:");
+                foreach (var tol in repo.tolerancecolors)
+                {
+                    Console.WriteLine($"{tol.Key}% -> {tol.Value}");
+                }
+
+
+
+                double tolerance;
+                while (true)
+                {
+                    Console.WriteLine("\nEnter tolerance (e.g., 5):");
+                    if (double.TryParse(Console.ReadLine(), out tolerance) && repo.tolerancecolors.ContainsKey(tolerance))
+                    {
+                        break;
+                    }
+                    Console.WriteLine("Invalid tolerance. Please enter a valid value from the list.");
+                }
+
+                var result = calculator.CalculateBands(resistance, tolerance);
+
+                Console.WriteLine($"\nResistor Color Bands:");
+                PrintColor(result.firstBand);
+                PrintColor(result.secondBand);
+                PrintColor(result.multiplierBand);
+                PrintColor(result.toleranceBand);
+                Console.WriteLine("press q to end");
+                input = Console.ReadLine();
+                
+
+            }
+            while (input != "q");
+        }
+                static void PrintColor(string colorName)
+                {
+                    string lowerColor = colorName.ToLower();
+
+
+                    switch (lowerColor)
+                    {
+                        case "black":
+                            Console.ForegroundColor = ConsoleColor.Black;
+                            break;
+                        case "brown":
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            break;
+                        case "red":
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            break;
+                        case "orange":
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            break;
+                        case "yellow":
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            break;
+                        case "green":
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            break;
+                        case "blue":
+                            Console.ForegroundColor = ConsoleColor.Blue;
+                            break;
+                        case "violet":
+                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            break;
+                        case "grey":
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            break;
+                        case "white":
+                            Console.ForegroundColor = ConsoleColor.White;
+                            break;
+                        case "gold":
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            break;
+                        case "silver":
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            break;
+                        default:
+                            Console.ForegroundColor = ConsoleColor.White;
+                            break;
+                    }
+
+
+                    if (Console.ForegroundColor == ConsoleColor.Black)
+                        Console.BackgroundColor = ConsoleColor.White;
+                    else
+                        Console.BackgroundColor = ConsoleColor.Black;
+
+
+                    Console.WriteLine(colorName);
+
+
+                    Console.ResetColor();
+
+                }
+
+
+            }
+
+
+
+        } 
+
